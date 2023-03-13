@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Nov  2 20:13:45 2020
+"""
 
 """
 Modifications copyright (C) 2021 Hristo Petkov
 This file is not part of the original DAG-GNN code.
 Modifications are as follows:
-  -Addition of a new file containiing pre-processing functionality which affects input data 
+  -Addition of a new file containing pre-processing functionality for the input data
 """
 
+"""
 @inproceedings{xu2019modeling,
   title={Modeling Tabular data using Conditional GAN},
   author={Xu, Lei and Skoularidou, Maria and Cuesta-Infante, Alfredo and Veeramachaneni, Kalyan},
