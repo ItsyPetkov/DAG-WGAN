@@ -5,6 +5,14 @@ Created on Mon May 10 18:37:53 2021
 """
 
 """
+Modifications copyright (C) 2021 Hristo Petkov
+This file used to be called train.py in the original DAG-GNN code.
+Modifications are as follows:
+  -Addition of a new discriminator class
+  -Addition of a new training disctance (i.e the wasserstein distance in the form of adversarial loss)
+"""
+
+"""
 @inproceedings{yu2019dag,
   title={DAG-GNN: DAG Structure Learning with Graph Neural Networks},
   author={Yue Yu, Jie Chen, Tian Gao, and Mo Yu},
