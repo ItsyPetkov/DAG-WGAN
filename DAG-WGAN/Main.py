@@ -5,6 +5,14 @@ Created on Sat Oct 24 22:49:31 2020
 """
 
 """
+Modifications copyright (C) 2021 Hristo Petkov
+This file used to be called train.py in the original DAG-GNN code.
+Modifications are as follows:
+  -Addition of new args-parser parameters
+  -Addition of a wrapper class which calls all of the functionality of DAG-WGAN
+"""
+
+"""
 @inproceedings{yu2019dag,
   title={DAG-GNN: DAG Structure Learning with Graph Neural Networks},
   author={Yue Yu, Jie Chen, Tian Gao, and Mo Yu},
