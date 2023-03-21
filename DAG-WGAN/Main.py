@@ -66,7 +66,7 @@ parser.add_argument('--export_directory', type=str, default='',
 
 # -----------data parameters ------
 # configurations
-parser.add_argument('--synthesize', type=int, default=0,
+parser.add_argument('--synthesize', type=int, default=1,
                     help='Flag for synthesiing synthetic data')
 parser.add_argument('--data_type', type=str, default='synthetic',
                     choices=['synthetic', 'benchmark', 'real'],
@@ -85,7 +85,7 @@ parser.add_argument('--graph_linear_type', type=str, default='nonlinear_2',
                     help='the synthetic data type: linear -> linear SEM, nonlinear_1 -> x=Acos(x+1)+z, nonlinear_2 -> x=2sin(A(x+0.5))+A(x+0.5)+z')
 parser.add_argument('--edge-types', type=int, default=2,
                     help='The number of edge types to infer.')
-parser.add_argument('--x_dims', type=int, default=5, #vector case: need to be equal to the last dimension of vector data to work
+parser.add_argument('--x_dims', type=int, default=1, #vector case: need to be equal to the last dimension of vector data to work
                     help='The number of input dimensions: default 1.')
 parser.add_argument('--z_dims', type=int, default=1,
                     help='The number of latent variable dimensions: default the same as variable size.')
