@@ -361,7 +361,7 @@ class AAE_WGAN_GP(nn.Module):
 
             optimizerV.zero_grad()
             
-            y_fake = self.discriminator(de_outputs.clone()) #cloning is absolutely necessary here
+            y_fake = self.discriminator(de_outputs.data.clone()) #cloning is absolutely necessary here
             
             lossVAE = -torch.mean(y_fake)
             lossVAE.backward()
