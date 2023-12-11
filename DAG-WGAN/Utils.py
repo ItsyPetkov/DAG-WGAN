@@ -5,6 +5,12 @@ Created on Thu Nov 12 15:13:21 2020
 """
 
 """
+Modifications copyright (C) 2021 Hristo Petkov
+Modifications are as follows:
+  -Addition of new utility functions which works with the new modifications in the other files
+"""
+
+"""
 @inproceedings{yu2019dag,
   title={DAG-GNN: DAG Structure Learning with Graph Neural Networks},
   author={Yue Yu, Jie Chen, Tian Gao, and Mo Yu},
