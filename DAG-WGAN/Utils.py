@@ -292,6 +292,10 @@ def simulate_sem(G: nx.DiGraph,
             eta = np.cos(X[:, parents, 0] + 1).dot(W[parents, j])
         elif linear_type == 'nonlinear_2':
             eta = (X[:, parents, 0]+0.5).dot(W[parents, j])
+        elif linear_type == 'post_nonlinear_1':
+            eta = np.cos(X[:, parents, 0] + 1).dot(W[parents, j])
+        elif linear_type == 'post_nonlinear_2':
+            eta = (X[:, parents, 0]+0.5).dot(W[parents, j])
         else:
             raise ValueError('unknown linear data type')
 
@@ -302,6 +306,10 @@ def simulate_sem(G: nx.DiGraph,
                 X[:, j, 0] = eta + np.random.normal(scale=noise_scale, size=n)
             elif linear_type == 'nonlinear_2':
                 X[:, j, 0] = 2.*np.sin(eta) + eta + np.random.normal(scale=noise_scale, size=n)
+            elif linear_type == 'post_nonlinear_1':
+                X[:, j, 0] = np.tanh(eta + np.random.normal(scale=noise_scale, size=n))
+            elif linear_type == 'post_nonlinear_2':
+                X[:, j, 0] = np.tanh(2.*np.sin(eta) + eta + np.random.normal(scale=noise_scale, size=n))
         elif sem_type == 'linear-exp':
             X[:, j, 0] = eta + np.random.exponential(scale=noise_scale, size=n)
         elif sem_type == 'linear-gumbel':

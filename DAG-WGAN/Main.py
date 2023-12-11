@@ -49,10 +49,10 @@ parser.add_argument('--initial_identifier', type=str, default='',
                     help='Initial Identifier for the sample dataframe')
 parser.add_argument('--num_of_rows', type=int, default=-1,
                     help='Number of rows in the sampled dataframe')
-parser.add_argument('--save_model', default='', type=str,
-                        help='A directory to save a trained model to.')
-parser.add_argument('--load_model', default='', type=str,
-                    help='A directory to load a trained model from.')
+parser.add_argument("--save_directory", default="", type=str, 
+                    help="A directory to save a trained model to.")
+parser.add_argument("--load_directory", default="", type=str, 
+                    help="A directory to load a trained model from.")
 parser.add_argument('--export_directory', type=str, default='',
                     help='choosing a directory for the output.')
 
@@ -73,11 +73,12 @@ parser.add_argument('--graph_degree', type=int, default=3,
                     help='the number of degree in generated DAG graph')
 parser.add_argument('--graph_sem_type', type=str, default='linear-gauss',
                     help='the structure equation model (SEM) parameter type')
-parser.add_argument('--graph_linear_type', type=str, default='nonlinear_2',
-                    help='the synthetic data type: linear -> linear SEM, nonlinear_1 -> x=Acos(x+1)+z, nonlinear_2 -> x=2sin(A(x+0.5))+A(x+0.5)+z')
+parser.add_argument('--graph_linear_type', type=str, default='post_nonlinear_2',
+                    help='the synthetic data type: linear -> linear SEM, nonlinear_1 -> x=Acos(x+1)+z, nonlinear_2 -> x=2sin(A(x+0.5))+A(x+0.5)+z,'
+                    + 'post_nonlinear_1 -> x=tanh(Acos(x+1)+z), post_nonlinear_2 -> x=tanh(2sin(A(x+0.5))+A(x+0.5)+z)')
 parser.add_argument('--edge-types', type=int, default=2,
                     help='The number of edge types to infer.')
-parser.add_argument('--x_dims', type=int, default=5, #vector case: need to be equal to the last dimension of vector data to work
+parser.add_argument('--x_dims', type=int, default=1, #vector case: need to be equal to the last dimension of vector data to work
                     help='The number of input dimensions: default 1.')
 parser.add_argument('--z_dims', type=int, default=1,
                     help='The number of latent variable dimensions: default the same as variable size.')
@@ -143,7 +144,7 @@ def main():
         
         causal_graph = aae_wgan_gp.fit(train_loader)
         
-        draw_dag(causal_graph, args.data_type, columns)
+        #draw_dag(causal_graph, args.data_type, columns)
         
     elif args.data_type == 'benchmark':
         
@@ -160,7 +161,7 @@ def main():
         BIC_score = compute_BiCScore(np.asarray(nx.to_numpy_matrix(ground_truth_G)), causal_graph)
         print('BIC_score: ' + str(BIC_score))
         
-        draw_dag(causal_graph, args.data_type)
+        #draw_dag(causal_graph, args.data_type)
         
     else:
         if args.synthesize:
@@ -185,11 +186,13 @@ def main():
         adj_A = np.zeros((num_nodes, num_nodes))
     
         aae_wgan_gp = AAE_WGAN_GP(args, adj_A)
-        causal_graph = aae_wgan_gp.fit(train_data, ground_truth)
+        causal_graph, data = aae_wgan_gp.fit(train_data, ground_truth)
         
-        draw_dag(causal_graph, args.data_type)
+        #draw_dag(causal_graph, args.data_type)
     
     #causal_graph.to_csv(os.path.join(args.export_directory, 'adjacency_matrix.csv'), index=False)
+    #pd.DataFrame(causal_graph).to_csv(os.path.join(args.export_directory, "adjacency_matrix.csv"), index=False)
+    #pd.DataFrame(data).to_csv(os.path.join(args.export_directory, "generated_data.csv"), index=False)
                 
     print('Programm finished in: ' + str(time.strftime("%H:%M:%S", time.gmtime(time.time() - t))))
 

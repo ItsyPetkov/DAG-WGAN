@@ -5,6 +5,14 @@ Created on Mon May 10 18:37:53 2021
 """
 
 """
+Modifications copyright (C) 2021 Hristo Petkov
+This file used to be called train.py in the original DAG-GNN code.
+Modifications are as follows:
+  -Addition of a new discriminator class
+  -Addition of a new training disctance (i.e the wasserstein distance in the form of adversarial loss)
+"""
+
+"""
 @inproceedings{yu2019dag,
   title={DAG-GNN: DAG Structure Learning with Graph Neural Networks},
   author={Yue Yu, Jie Chen, Tian Gao, and Mo Yu},
@@ -26,7 +34,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import networkx as nx
+import pandas as pd
 import os
+import pickle
 
 from torch.autograd import Variable
 from torch import optim
@@ -218,6 +228,9 @@ class AAE_WGAN_GP(nn.Module):
         self.gamma = args.gamma
         self.negative_slope = args.negative_slope
         
+        self.save_directory = args.save_directory
+        self.load_directory = args.load_directory
+        
     def forward(self, inputs):
         en_outputs, logits, new_adjA, Wa = self.encoder(inputs)
         mat_z, de_outputs = self.decoder(logits, new_adjA, Wa)
@@ -271,7 +284,8 @@ class AAE_WGAN_GP(nn.Module):
         
         return loss, preds, target, loss_nll, loss_kl 
     
-    def train(self, train_loader, epoch, best_val_loss, ground_truth_G, lambda_A, c_A, optimizerV, optimizerD):
+    def train(self, train_loader, epoch, best_val_loss, best_epoch, best_mse_loss, best_mse_data,
+                        best_shd, best_shd_graph, ground_truth_G, lambda_A, c_A, optimizerV, optimizerD):
         '''training algorithm for a single epoch'''
         t = time.time()
         nll_train = []
@@ -339,11 +353,32 @@ class AAE_WGAN_GP(nn.Module):
             graph = origin_A.data.clone().cpu().numpy()
             graph[np.abs(graph) < self.graph_threshold] = 0
             
+            mse = F.mse_loss(preds, target).item()
+            
             if ground_truth_G != None:
                 fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(graph))
                 shd_trian.append(shd)
                 
-            mse_train.append(F.mse_loss(preds, target).item())
+                if best_shd == np.inf and best_mse_loss == np.inf:
+                    best_shd = shd
+                    best_mse_loss = mse
+                elif shd < best_shd:
+                    best_shd = shd
+                    best_shd_graph = graph
+                    best_mse_loss = np.inf
+                elif shd == best_shd and mse < best_mse_loss:
+                    best_mse_loss = mse
+                    best_mse_data = preds
+                    best_epoch = epoch
+                    self.save_model(best_shd_graph, best_mse_data, data)
+                else:
+                    if best_mse_loss == np.inf:
+                        best_mse_loss = mse
+                    elif mse < best_mse_loss:
+                        best_mse_loss = mse
+                        best_mse_data = preds
+                
+            mse_train.append(mse)
             nll_train.append(loss_nll.item())
             kl_train.append(loss_kl.item())
             
@@ -369,7 +404,7 @@ class AAE_WGAN_GP(nn.Module):
                   'shd_trian: {:.10f}'.format(np.mean(shd_trian)),
                   'time: {:.4f}s'.format(time.time() - t))
 
-            return np.mean(np.mean(kl_train)  + np.mean(nll_train)), np.mean(nll_train), np.mean(mse_train), graph, origin_A
+            return np.mean(np.mean(kl_train)  + np.mean(nll_train)), np.mean(nll_train), np.mean(mse_train), graph, origin_A, best_shd, best_shd_graph, best_mse_loss, best_mse_data, best_epoch
         else:
             
             print('Epoch: {:04d}'.format(epoch),
@@ -412,17 +447,22 @@ class AAE_WGAN_GP(nn.Module):
         best_ELBO_loss = np.inf
         best_NLL_loss = np.inf
         best_MSE_loss = np.inf
+        best_shd = np.inf
         best_epoch = 0
         best_ELBO_graph = []
         best_NLL_graph = []
         best_MSE_graph = []
+        best_shd_graph = []
+        best_MSE_data = []
 
         try:
             for step_k in range(self.k_max_iter):
                 while self.c_A < 1e+20:
                     for epoch in range(self.epochs):
-                        ELBO_loss, NLL_loss, MSE_loss, graph, origin_A = self.train(train_loader,
-                        epoch, best_ELBO_loss, ground_truth_G, 
+                        (ELBO_loss, NLL_loss, MSE_loss, graph, origin_A, best_shd, best_shd_graph,
+                         best_MSE_loss, best_MSE_data, best_epoch) = self.train(train_loader,
+                        epoch, best_ELBO_loss, best_epoch, best_MSE_loss, best_MSE_data,
+                        best_shd, best_shd_graph, ground_truth_G, 
                         self.lambda_A, self.c_A, self.optimizerV, self.optimizerD)
                         if ELBO_loss < best_ELBO_loss:
                             best_ELBO_loss = ELBO_loss
@@ -441,6 +481,8 @@ class AAE_WGAN_GP(nn.Module):
 
                     print("Optimization Finished!")
                     print("Best Epoch: {:04d}".format(best_epoch))
+                    print("Best SHD: {:04d}".format(best_shd))
+                    print("Best MSE Loss: {:.10f}".format(best_MSE_loss))
                 
                     if ELBO_loss > 2 * best_ELBO_loss:
                         break
@@ -478,25 +520,25 @@ class AAE_WGAN_GP(nn.Module):
                 fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(best_MSE_graph))
                 print('Best MSE Graph Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
 
-                graph = origin_A.data.clone().cpu().numpy()
-                graph[np.abs(graph) < 0.1] = 0
-                # print(graph)
-                fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(graph))
-                print('threshold 0.1, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
+                #graph = origin_A.data.clone().cpu().numpy()
+                # best_shd_graph[np.abs(best_shd_graph) < 0.1] = 0
+                # # print(graph)
+                # fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(best_shd_graph))
+                # print('threshold 0.1, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
 
-                graph[np.abs(graph) < 0.2] = 0
-                # print(graph)
-                fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(graph))
-                print('threshold 0.2, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
+                # best_shd_graph[np.abs(best_shd_graph) < 0.2] = 0
+                # # print(graph)
+                # fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(best_shd_graph))
+                # print('threshold 0.2, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
 
-                graph[np.abs(graph) < 0.3] = 0
+                best_shd_graph[np.abs(best_shd_graph) < 0.3] = 0
                 # print(graph)
-                fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(graph))
+                fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(best_shd_graph))
                 print('threshold 0.3, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
                 
                 #graph = origin_A.data.clone().cpu().numpy()
                 #graph[np.abs(graph) < self.graph_threshold] = 0
-                return graph
+                return best_shd_graph, best_MSE_data
             else:
                 graph = origin_A.data.clone().cpu().numpy()
                 graph[np.abs(graph) < self.graph_threshold] = 0
@@ -535,11 +577,15 @@ class AAE_WGAN_GP(nn.Module):
             fdr, tpr, fpr, shd, nnz = count_accuracy(ground_truth_G, nx.DiGraph(graph))
             print('threshold 0.3, Accuracy: fdr', fdr, ' tpr ', tpr, ' fpr ', fpr, 'shd', shd, 'nnz', nnz)
     
-    def save_model(self):
+    def save_model(self, causal_graph, data, real_data):
         assert self.save_directory != '', 'Saving directory not specified! Please specify a saving directory!'
         torch.save(self.encoder.state_dict(), os.path.join(self.save_directory,'encoder.pth'))
         torch.save(self.decoder.state_dict(), os.path.join(self.save_directory,'decoder.pth'))
         torch.save(self.discriminator.state_dict(), os.path.join(self.save_directory,'discriminator.pth'))
+        pd.DataFrame(causal_graph).to_csv(os.path.join(self.save_directory, "adjacency_matrix.csv"), index=False)
+        pd.DataFrame(data.clone().squeeze().detach().cpu().numpy()).to_csv(os.path.join(self.save_directory, "generated_data.csv"), index=False)
+        pd.DataFrame(real_data.clone().squeeze().detach().cpu().numpy()).to_csv(os.path.join(self.save_directory, "real_data.csv"), index=False)
+                
         
     def load_model(self):
         assert self.load_directory != '', 'Loading directory not specified! Please specify a loading directory!'
@@ -559,4 +605,3 @@ class AAE_WGAN_GP(nn.Module):
             
             
         return encoder, decoder, discriminator
-        
