@@ -349,6 +349,18 @@ class AAE_WGAN_GP(nn.Module):
             loss.backward(retain_graph=True)
             loss = optimizerV.step()
             
+            ###############################################
+            # (3) Update G network: maximize log(D(G(z)))
+            ###############################################
+
+            optimizerV.zero_grad()
+            
+            y_fake = self.discriminator(de_outputs.data.clone()) #cloning is absolutely necessary here
+            
+            lossVAE = -torch.mean(y_fake)
+            lossVAE.backward()
+            lossVAE = optimizerV.step() 
+            
             # compute metrics
             graph = origin_A.data.clone().cpu().numpy()
             graph[np.abs(graph) < self.graph_threshold] = 0
@@ -381,18 +393,6 @@ class AAE_WGAN_GP(nn.Module):
             mse_train.append(mse)
             nll_train.append(loss_nll.item())
             kl_train.append(loss_kl.item())
-            
-            ###############################################
-            # (3) Update G network: maximize log(D(G(z)))
-            ###############################################
-
-            optimizerV.zero_grad()
-            
-            y_fake = self.discriminator(de_outputs.data.clone()) #cloning is absolutely necessary here
-            
-            lossVAE = -torch.mean(y_fake)
-            lossVAE.backward()
-            lossVAE = optimizerV.step() 
             
         if ground_truth_G != None:
             
