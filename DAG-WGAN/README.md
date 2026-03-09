@@ -26,3 +26,6 @@ According to our experiments, the new DAG-WGAN model performs better than other 
 ## Visual aid for understanding critical concepts
 
 We provide users with helpful visualizations (TLDR version of our paper) of the main features of our framework, which include the following: 1) a diagram of our entire framework with different architectures included.
+
+<div align="center"><img width="640" height="234" alt="image" src="https://github.com/user-attachments/assets/7a55f9dd-99ec-415e-86e9-80f4251ffa15" /></div>
+
