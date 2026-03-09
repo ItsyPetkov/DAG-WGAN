@@ -29,3 +29,22 @@ We provide users with helpful visualizations (TLDR version of our paper) of the 
 
 <div align="center"><img width="640" height="234" alt="image" src="https://github.com/user-attachments/assets/7a55f9dd-99ec-415e-86e9-80f4251ffa15" /></div>
 
+DAG-WGAN employs a hybrid architecture composed of two primary components: (1) a Variational AutoEncoder (VAE) and (2) a Wasserstein Generative Adversarial Network with Gradient Penalty (WGAN-GP). The VAE component follows the structure of the DAG-GNN model. Therefore, the key distinction between DAG-WGAN and DAG-GNN is the integration of the additional WGAN-GP architecture, which is implemented through the Discriminator module.
+
+## Installation
+
+The easiest way to gain access to our work is to clone the github repo using the following:
+
+```bash
+git clone https://github.com/ItsyPetkov/DAG-WGAN/tree/master
+cd DAG-WGAN/DAG-WGAN
+```
+
+## Examples
+Here are some basic examples to get you started:
+
+To get started with DAGAF just execute the following:
+```bash
+python Main.py
+python Main.py -h # This line will give you all of the arguments of the model
+```
