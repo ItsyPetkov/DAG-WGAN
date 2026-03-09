@@ -84,3 +84,15 @@ To run DAG-WGAN with benchmark, discrete data instead of continuous, change DATA
 
 If you wish to use our framework, please cite the following paper:
 
+```
+@article{Petkov2022DAGWGANCS,
+  title={DAG-WGAN: Causal Structure Learning With Wasserstein Generative Adversarial Networks},
+  author={Hristo Petkov and Colin Hanley and Feng Dong},
+  journal={ArXiv},
+  year={2022},
+  volume={abs/2204.00387}
+}
+```
+
+## License
+DAGAF is MIT licensed, as found in the LICENSE file.
