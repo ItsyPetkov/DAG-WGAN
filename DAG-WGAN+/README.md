@@ -25,3 +25,8 @@ search more potential causal structures for updates. This further improves the a
 ## Installation
 
 The easiest way to gain access to our work is to clone the github repo using the following:
+
+```bash
+git clone https://github.com/ItsyPetkov/DAG-WGAN/tree/master
+cd DAG-WGAN/DAG-WGAN+
+```
