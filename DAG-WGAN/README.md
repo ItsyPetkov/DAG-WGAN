@@ -43,7 +43,7 @@ cd DAG-WGAN/DAG-WGAN
 ## Examples
 Here are some basic examples to get you started:
 
-To get started with DAGAF just execute the following:
+To get started with DAG-WGAN just execute the following:
 ```bash
 python Main.py
 python Main.py -h # This line will give you all of the arguments of the model
@@ -95,4 +95,4 @@ If you wish to use our framework, please cite the following paper:
 ```
 
 ## License
-DAGAF is Apache-2.0 licensed, as found in the LICENSE file.
+DAG-WGAN is Apache-2.0 licensed, as found in the LICENSE file.
