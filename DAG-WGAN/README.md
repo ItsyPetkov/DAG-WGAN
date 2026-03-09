@@ -48,3 +48,39 @@ To get started with DAGAF just execute the following:
 python Main.py
 python Main.py -h # This line will give you all of the arguments of the model
 ```
+
+This will execute the default state of our framework, where all of its parameters have been set in the Main.py file
+
+That being said, here are some interesting things you can do:
+
+To run DAG-WGAN with the same data, instead of generating new data everytime (default state), you can set the SYNTHESIZE flag to 0
+```bash
+python Main.py --synthesize 0 # Model will not generate new data and will run with the last data generated
+python Main.py # Model will generate new data because synthesize is set 1 by default
+```
+
+To run DAG-WGAN with data of different dimensions, change the values of DATA_SAMPLE_SIZE (number of rows, default:5000) and DATA_VARIABLE_SIZE (number of columns, default:10)
+```bash
+python Main.py --data_sample_size 2500 --data_variable_size 50
+python Main.py --data_sample_size 4000 --data_variable_size 20
+```
+
+To run DAG-WGAN with different types of continuous data, change the value of GRAPH_LINEAR_TYPE (default: non_linear_2). Below is a list of all possibilities
+```bash
+python Main.py --graph_linear_type linear 
+python Main.py --graph_linear_type nonlinear_1
+python Main.py --graph_linear_type nonlinear_2
+python Main.py --graph_linear_type post_nonlinear_1
+python Main.py --graph_linear_type post_nonlinear_2
+```
+
+To run DAG-WGAN with benchmark, discrete data instead of continuous, change DATA_TYPE to benchmark
+```bash
+ python Main.py --data_type benchmark --path ./ --save_directory ./ --load_directory ./
+ # Benchmarks are provided in the data folder.
+```
+
+## Citing DAG-WGAN
+
+If you wish to use our framework, please cite the following paper:
+
