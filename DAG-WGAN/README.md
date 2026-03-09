@@ -95,4 +95,4 @@ If you wish to use our framework, please cite the following paper:
 ```
 
 ## License
-DAGAF is MIT licensed, as found in the LICENSE file.
+DAGAF is Apache-2.0 licensed, as found in the LICENSE file.
